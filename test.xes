@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<log xes.version="1849-2016" xes.features="nested-attributes" xmlns="http://www.xes-standard.org/">
+	<extension name="Concept" prefix="concept" uri="http://www.xes-standard.org/concept.xesext" />
+	<extension name="Lifecycle" prefix="lifecycle" uri="http://www.xes-standard.org/lifecycle.xesext" />
+	<extension name="Time" prefix="time" uri="http://www.xes-standard.org/time.xesext" />
+	<string key="origin" value="csv" />
+	<trace>
+		<string key="concept:name" value="c16469ad-05aa-4cea-bfd8-cf7412caee1e" />
+		<event>
+			<int key="ID" value="236" />
+			<string key="EVENT" value="SERVICE_CUSTOM_MESSAGE_2" />
+			<date key="TIME_STAMP" value="2023-07-12T17:28:32" />
+			<string key="SOURCE_NODE" value="&lt;0xF668F9..&gt;" />
+			<string key="SOURCE_AGENT" value="f7fe9a9dab81c2ea45c39cb432910714" />
+			<string key="DESTINATION_NODE" value="" />
+			<string key="DESTINATION_AGENT" value="" />
+			<string key="REMARKS" value='{"msg": ""}' />
+			<string key="concept:name" value="greeting:response" />
+			<string key="RESOURCE" value="MensaBot" />
+			<string key="RESOURCE_TYPE" value="bot" />
+			<string key="lifecycle:transition" value="start" />
+			<date key="time:timestamp" value="2023-07-12T17:28:32" />
+		</event>
+		<event>
+			<int key="ID" value="237" />
+			<string key="EVENT" value="SERVICE_CUSTOM_MESSAGE_2" />
+			<date key="TIME_STAMP" value="2023-07-12T17:28:32" />
+			<string key="SOURCE_NODE" value="&lt;0xF668F9..&gt;" />
+			<string key="SOURCE_AGENT" value="f7fe9a9dab81c2ea45c39cb432910714" />
+			<string key="DESTINATION_NODE" value="" />
+			<string key="DESTINATION_AGENT" value="" />
+			<string key="REMARKS" value='{"msg": ""}' />
+			<string key="concept:name" value="greeting:response" />
+			<string key="RESOURCE" value="MensaBot" />
+			<string key="RESOURCE_TYPE" value="bot" />
+			<string key="lifecycle:transition" value="complete" />
+			<date key="time:timestamp" value="2023-07-12T17:28:32" />
+		</event>
+		<event>
+			<int key="ID" value="240" />
+			<string key="EVENT" value="SERVICE_CUSTOM_MESSAGE_1" />
+			<date key="TIME_STAMP" value="2023-07-12T17:28:32" />
+			<string key="SOURCE_NODE" value="&lt;0xF668F9..&gt;" />
+			<string key="SOURCE_AGENT" value="f7fe9a9dab81c2ea45c39cb432910714" />
+			<string key="DESTINATION_NODE" value="" />
+			<string key="DESTINATION_AGENT" value="" />
+			<string key="REMARKS" value='{"user": "1d07d7c8a2d738b2354efa8653b8319b52dbfe7d8b863ff5858bfcb30f10aeaddd374e1630c548afc21b68f94dd7f37f"}' />
+			<string key="concept:name" value="greeting" />
+			<string key="RESOURCE" value="MensaBot" />
+			<string key="RESOURCE_TYPE" value="bot" />
+			<string key="lifecycle:transition" value="start" />
+			<date key="time:timestamp" value="2023-07-12T17:28:32" />
+		</event>
+		<event>
+			<int key="ID" value="241" />
+			<string key="EVENT" value="SERVICE_CUSTOM_MESSAGE_1" />
+			<date key="TIME_STAMP" value="2023-07-12T17:28:32" />
+			<string key="SOURCE_NODE" value="&lt;0xF668F9..&gt;" />
+			<string key="SOURCE_AGENT" value="f7fe9a9dab81c2ea45c39cb432910714" />
+			<string key="DESTINATION_NODE" value="" />
+			<string key="DESTINATION_AGENT" value="" />
+			<string key="REMARKS" value='{"user": "1d07d7c8a2d738b2354efa8653b8319b52dbfe7d8b863ff5858bfcb30f10aeaddd374e1630c548afc21b68f94dd7f37f"}' />
+			<string key="concept:name" value="greeting" />
+			<string key="RESOURCE" value="MensaBot" />
+			<string key="RESOURCE_TYPE" value="bot" />
+			<string key="lifecycle:transition" value="complete" />
+			<date key="time:timestamp" value="2023-07-12T17:28:32" />
+		</event>
+	</trace>
+	<trace>
+		<string key="concept:name" value="a6c7bab5-9a62-450f-a741-db7f5a34f5f9" />
+		<event>
+			<int key="ID" value="246" />
+			<string key="EVENT" value="SERVICE_CUSTOM_MESSAGE_2" />
+			<date key="TIME_STAMP" value="2023-07-12T17:29:02" />
+			<string key="SOURCE_NODE" value="&lt;0xF668F9..&gt;" />
+			<string key="SOURCE_AGENT" value="f7fe9a9dab81c2ea45c39cb432910714" />
+			<string key="DESTINATION_NODE" value="" />
+			<string key="DESTINATION_AGENT" value="" />
+			<string key="REMARKS" value='{"msg": ""}' />
+			<string key="concept:name" value="menu:response" />
+			<string key="RESOURCE" value="MensaBot" />
+			<string key="RESOURCE_TYPE" value="bot" />
+			<string key="lifecycle:transition" value="start" />
+			<date key="time:timestamp" value="2023-07-12T17:29:02" />
+		</event>
+		<event>
+			<int key="ID" value="247" />
+			<string key="EVENT" value="SERVICE_CUSTOM_MESSAGE_2" />
+			<date key="TIME_STAMP" value="2023-07-12T17:29:02" />
+			<string key="SOURCE_NODE" value="&lt;0xF668F9..&gt;" />
+			<string key="SOURCE_AGENT" value="f7fe9a9dab81c2ea45c39cb432910714" />
+			<string key="DESTINATION_NODE" value="" />
+			<string key="DESTINATION_AGENT" value="" />
+			<string key="REMARKS" value='{"msg": ""}' />
+			<string key="concept:name" value="menu:response" />
+			<string key="RESOURCE" value="MensaBot" />
+			<string key="RESOURCE_TYPE" value="bot" />
+			<string key="lifecycle:transition" value="complete" />
+			<date key="time:timestamp" value="2023-07-12T17:29:02" />
+		</event>
+		<event>
+			<int key="ID" value="250" />
+			<string key="EVENT" value="SERVICE_CUSTOM_MESSAGE_1" />
+			<date key="TIME_STAMP" value="2023-07-12T17:29:04" />
+			<string key="SOURCE_NODE" value="&lt;0xF668F9..&gt;" />
+			<string key="SOURCE_AGENT" value="f7fe9a9dab81c2ea45c39cb432910714" />
+			<string key="DESTINATION_NODE" value="" />
+			<string key="DESTINATION_AGENT" value="" />
+			<string key="REMARKS" value='{"user": "1d07d7c8a2d738b2354efa8653b8319b52dbfe7d8b863ff5858bfcb30f10aeaddd374e1630c548afc21b68f94dd7f37f"}' />
+			<string key="concept:name" value="menu" />
+			<string key="RESOURCE" value="MensaBot" />
+			<string key="RESOURCE_TYPE" value="bot" />
+			<string key="lifecycle:transition" value="start" />
+			<date key="time:timestamp" value="2023-07-12T17:29:04" />
+		</event>
+		<event>
+			<int key="ID" value="251" />
+			<string key="EVENT" value="SERVICE_CUSTOM_MESSAGE_1" />
+			<date key="TIME_STAMP" value="2023-07-12T17:29:04" />
+			<string key="SOURCE_NODE" value="&lt;0xF668F9..&gt;" />
+			<string key="SOURCE_AGENT" value="f7fe9a9dab81c2ea45c39cb432910714" />
+			<string key="DESTINATION_NODE" value="" />
+			<string key="DESTINATION_AGENT" value="" />
+			<string key="REMARKS" value='{"user": "1d07d7c8a2d738b2354efa8653b8319b52dbfe7d8b863ff5858bfcb30f10aeaddd374e1630c548afc21b68f94dd7f37f"}' />
+			<string key="concept:name" value="menu" />
+			<string key="RESOURCE" value="MensaBot" />
+			<string key="RESOURCE_TYPE" value="bot" />
+			<string key="lifecycle:transition" value="complete" />
+			<date key="time:timestamp" value="2023-07-12T17:29:04" />
+		</event>
+		<event>
+			<int key="ID" value="253" />
+			<string key="EVENT" value="SERVICE_CUSTOM_MESSAGE_3" />
+			<date key="TIME_STAMP" value="2023-07-12T17:29:04" />
+			<string key="SOURCE_NODE" value="&lt;0xF668F9..&gt;" />
+			<string key="SOURCE_AGENT" value="f7fe9a9dab81c2ea45c39cb432910714" />
+			<string key="DESTINATION_NODE" value="" />
+			<string key="DESTINATION_AGENT" value="" />
+			<string key="REMARKS" value="{}" />
+			<string key="concept:name" value="/menu" />
+			<string key="RESOURCE" value="6840e28ea830d43602f6ace54daa2685181012018550639280d0cfaa2b285fc88303b98c459c21051070b43635b4705212a6773312998e774bd489bee3e9d586" />
+			<string key="RESOURCE_TYPE" value="bot" />
+			<string key="lifecycle:transition" value="start" />
+			<date key="time:timestamp" value="2023-07-12T17:29:04" />
+		</event>
+		<event>
+			<int key="ID" value="256" />
+			<string key="EVENT" value="SERVICE_CUSTOM_MESSAGE_3" />
+			<date key="TIME_STAMP" value="2023-07-12T17:29:06" />
+			<string key="SOURCE_NODE" value="&lt;0xF668F9..&gt;" />
+			<string key="SOURCE_AGENT" value="f7fe9a9dab81c2ea45c39cb432910714" />
+			<string key="DESTINATION_NODE" value="" />
+			<string key="DESTINATION_AGENT" value="" />
+			<string key="REMARKS" value="{}" />
+			<string key="concept:name" value="/menu" />
+			<string key="RESOURCE" value="6840e28ea830d43602f6ace54daa2685181012018550639280d0cfaa2b285fc88303b98c459c21051070b43635b4705212a6773312998e774bd489bee3e9d586" />
+			<string key="RESOURCE_TYPE" value="bot" />
+			<string key="lifecycle:transition" value="complete" />
+			<date key="time:timestamp" value="2023-07-12T17:29:06" />
+		</event>
+	</trace>
+</log>
