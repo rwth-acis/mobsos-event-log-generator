@@ -54,6 +54,8 @@ services:
       MYSQL_INITDB_SQL: /docker-entrypoint-initdb.d/init.sql
     volumes:
       - ./assets/SBF.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "8085:3306"
 
   frontend:
     image: registry.tech4comp.dbis.rwth-aachen.de/rwthacis/sbf-utils:develop
