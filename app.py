@@ -2,8 +2,21 @@ from flask import Flask, request, send_file
 from sqlalchemy import create_engine
 import pandas as pd
 import os
+
+from event_log_generator import read_events_into_df
+from event_log_generator import get_db_connection
+
+try:
+    import psutil
+
+    parent_pid = os.getpid()
+    parent_name = str(psutil.Process(parent_pid).name())
+except psutil.NoSuchProcess:
+    print("No such process")
+    parent_name = "unknown"
 import pm4py
-from event_log_generator.db_utils import read_events_into_df
+
+
 
 # pip install dogpile.cache for caching the sql results
 
@@ -17,6 +30,9 @@ mysql_user = os.environ['MYSQL_USER']
 mysql_password = os.environ['MYSQL_PASSWORD']
 mysql_host = os.environ['MYSQL_HOST']
 mysql_db = os.environ['MYSQL_DB']
+mysql_port = os.environ['MYSQL_PORT']
+
+db_connection = get_db_connection(mysql_host,mysql_port, mysql_user, mysql_password, mysql_db)
 
 # port 
 port = os.environ['PORT']
@@ -24,17 +40,18 @@ port = os.environ['PORT']
 if port is None:
     port = 8087
 
-db_connection_str = f'mysql+pymysql://{mysql_user}:{mysql_password}@{mysql_host}/{mysql_db}'
-
 
 app = Flask(__name__)
 
 
 def generateEventLog(db_connection,start_date = None, end_date =None):
+    print('Reading events from database', start_date, end_date)
     df = read_events_into_df(db_connection,start_date, end_date)
     # rename columns CASE_ID->case:concept:name, ACTIVITY_NAME->concept:name, TIME_OF_EVENT->time:timestamp, LIFECYCLE_PHASE->lifecycle:transition
     df.rename(columns={'CASE_ID': 'case:concept:name', 'ACTIVITY_NAME': 'concept:name', 'TIME_OF_EVENT': 'time:timestamp', 'LIFECYCLE_PHASE': 'lifecycle:transition'}, inplace=True)
     df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
+    if df.empty:
+        raise ValueError('No events found in database')
     if start_date is None:
         start_date = df['time:timestamp'].min().strftime('%Y-%m-%d')
     if end_date is None:
@@ -49,17 +66,16 @@ def send_xml_file():
     if request.method == 'GET':
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
-
-        # if start_date is None: 
-        #     start_date = '2021-01-01'
-        
-        # if end_date is None:
-        #     end_date = pd.to_datetime('now').strftime('%Y-%m-%d')
-        
-        file_name = generateEventLog(db_connection,start_date, end_date)
-
-        return send_file(file_name, as_attachment=True), os.remove(file_name)
+        try:
+            file_name = generateEventLog(db_connection,start_date, end_date)
+            return send_file(file_name, as_attachment=True), os.remove(file_name)
+        except ValueError as e:
+            return str(e), 400
+        except Exception as e:
+            return str(e), 500
+    else:
+        return 'Method not allowed', 405
 
 if __name__ == '__main__':
-    db_connection = create_engine(db_connection_str)
+    print('Starting event log generator')
     app.run(port=port, debug=True)
