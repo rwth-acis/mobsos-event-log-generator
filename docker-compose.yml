@@ -44,6 +44,8 @@ services:
   rasa:
     image: ${RASA_IMAGE:-rasa/rasa:3.3.10-full}
     command: run --enable-api -m models --cors "*" --debug
+    ports:
+      - "5005:5005"
   db:
     image: mysql:8
     platform: ${TARGETPLATFORM:-linux/amd64}
