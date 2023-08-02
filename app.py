@@ -65,21 +65,6 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
     pm4py.write_xes(df, file_name, case_id_key='case:concept:name')
     return file_name
 
-@app.route('/', methods=['GET'])
-def send_xml_file():
-    print('Request received')
-    if request.method == 'GET':
-        start_date = request.args.get('start_date')
-        end_date = request.args.get('end_date')
-        try:
-            file_name = generateEventLog(db_connection,start_date, end_date)
-            return send_file(file_name, as_attachment=True), os.remove(file_name)
-        except ValueError as e:
-            return str(e), 400
-        except Exception as e:
-            return str(e), 500
-    else:
-        return 'Method not allowed', 405
 
 # route for generating event log for a specific resource
 @app.route('/resource/<resource_id>', methods=['GET'])
