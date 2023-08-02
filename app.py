@@ -44,11 +44,16 @@ if port is None:
 app = Flask(__name__)
 
 
-def generateEventLog(db_connection,start_date = None, end_date =None):
+def generateEventLog(db_connection,start_date = None, end_date =None, resource_id = None):
     print('Reading events from database', start_date, end_date)
-    df = read_events_into_df(db_connection,start_date, end_date)
+    df = read_events_into_df(db_connection,start_date, end_date,resource_id)
     # rename columns CASE_ID->case:concept:name, ACTIVITY_NAME->concept:name, TIME_OF_EVENT->time:timestamp, LIFECYCLE_PHASE->lifecycle:transition
     df.rename(columns={'CASE_ID': 'case:concept:name', 'ACTIVITY_NAME': 'concept:name', 'TIME_OF_EVENT': 'time:timestamp', 'LIFECYCLE_PHASE': 'lifecycle:transition'}, inplace=True)
+
+    df['EVENT'] = df['EVENT'].replace('SERVICE_CUSTOM_MESSAGE_1', 'USER_MESSAGE')
+    df['EVENT'] = df['EVENT'].replace('SERVICE_CUSTOM_MESSAGE_2', 'BOT_MESSAGE')
+    df['EVENT'] = df['EVENT'].replace('SERVICE_CUSTOM_MESSAGE_3', 'SERVICE_REQUEST')
+
     df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
     if df.empty:
         raise ValueError('No events found in database')
@@ -68,6 +73,23 @@ def send_xml_file():
         end_date = request.args.get('end_date')
         try:
             file_name = generateEventLog(db_connection,start_date, end_date)
+            return send_file(file_name, as_attachment=True), os.remove(file_name)
+        except ValueError as e:
+            return str(e), 400
+        except Exception as e:
+            return str(e), 500
+    else:
+        return 'Method not allowed', 405
+
+# route for generating event log for a specific resource
+@app.route('/resource/<resource_id>', methods=['GET'])
+def send_xml_file_for_resource(resource_id):
+    print('Request received for resource', resource_id)
+    if request.method == 'GET':
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        try:
+            file_name = generateEventLog(db_connection,start_date, end_date, resource_id)
             return send_file(file_name, as_attachment=True), os.remove(file_name)
         except ValueError as e:
             return str(e), 400
