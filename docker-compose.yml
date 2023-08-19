@@ -15,7 +15,7 @@ services:
     depends_on:
       - social-bot-manager
   social-bot-manager:
-    image: registry.tech4comp.dbis.rwth-aachen.de/rwthacis/social-bot-manager:ma-lakhoune
+    image: las2peersocialbotmanagerservice:latest
     environment:
       DATABASE_NAME: ${DATABASE_NAME:-SBF}
       DATABASE_HOST: db
@@ -60,7 +60,7 @@ services:
       - "8085:3306"
 
   frontend:
-    image: registry.tech4comp.dbis.rwth-aachen.de/rwthacis/sbf-utils:develop
+    image: registry.tech4comp.dbis.rwth-aachen.de/rwthacis/sbf-utils:ma-lakhoune
     environment:
       YJS: ${YJS:-localhost:1234}
       PORT: ${PORT:-8082}
