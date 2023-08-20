@@ -5,6 +5,7 @@ import os
 
 from event_log_generator import read_events_into_df
 from event_log_generator import get_db_connection
+from event_log_generator import get_resource_ids
 
 try:
     import psutil
@@ -44,9 +45,9 @@ if port is None:
 app = Flask(__name__)
 
 
-def generateEventLog(db_connection,start_date = None, end_date =None, resource_id = None):
+def generateEventLog(db_connection,start_date = None, end_date =None, resource_ids = None):
     print('Reading events from database', start_date, end_date)
-    df = read_events_into_df(db_connection,start_date, end_date,resource_id)
+    df = read_events_into_df(db_connection,start_date, end_date,resource_ids)
     # rename columns CASE_ID->case:concept:name, ACTIVITY_NAME->concept:name, TIME_OF_EVENT->time:timestamp, LIFECYCLE_PHASE->lifecycle:transition
     df.rename(columns={'CASE_ID': 'case:concept:name', 'ACTIVITY_NAME': 'concept:name', 'TIME_OF_EVENT': 'time:timestamp', 'LIFECYCLE_PHASE': 'lifecycle:transition'}, inplace=True)
 
@@ -74,7 +75,25 @@ def send_xml_file_for_resource(resource_id):
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         try:
-            file_name = generateEventLog(db_connection,start_date, end_date, resource_id)
+            file_name = generateEventLog(db_connection,start_date, end_date, list(resource_id))
+            return send_file(file_name, as_attachment=True), os.remove(file_name)
+        except ValueError as e:
+            return str(e), 400
+        except Exception as e:
+            return str(e), 500
+    else:
+        return 'Method not allowed', 405
+
+# route for generating event log for a bot name
+@app.route('/bot/<botName>', methods=['GET'])
+def send_xml_file_for_bot(botName):
+    print('Request received for bot', botName)
+    if request.method == 'GET':
+        start_date = request.args.get('start_date')
+        end_date = request.args.get('end_date')
+        try:
+            resource_ids = get_resource_ids(db_connection, botName)
+            file_name = generateEventLog(db_connection,start_date, end_date, resource_ids)
             return send_file(file_name, as_attachment=True), os.remove(file_name)
         except ValueError as e:
             return str(e), 400
