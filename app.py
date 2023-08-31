@@ -2,7 +2,7 @@ from flask import Flask, request, send_file
 from sqlalchemy import create_engine
 import pandas as pd
 import os
-
+import json
 from event_log_generator import read_events_into_df
 from event_log_generator import get_db_connection
 from event_log_generator import get_resource_ids
@@ -44,6 +44,15 @@ if port is None:
 
 app = Flask(__name__)
 
+def extract_remarks(row):
+    """
+    Extracts the fields from the remarks column and adds them to the row
+    """
+    json_data = json.loads(row['REMARKS'])
+    for key in json_data.keys():
+        row[key] = json_data[key]
+    return row
+
 
 def generateEventLog(db_connection,start_date = None, end_date =None, resource_ids = None):
     print('Reading events from database', start_date, end_date)
@@ -62,6 +71,9 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
         start_date = df['time:timestamp'].min().strftime('%Y-%m-%d')
     if end_date is None:
         end_date = df['time:timestamp'].max().strftime('%Y-%m-%d')
+
+    df = df.apply(extract_remarks, axis=1) # extract fields from remarks column
+    
     file_name = 'event_log'+start_date+'_'+end_date+'.xes'
     pm4py.write_xes(df, file_name, case_id_key='case:concept:name')
     return file_name
