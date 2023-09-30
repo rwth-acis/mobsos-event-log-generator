@@ -54,7 +54,7 @@ def extract_remarks(row):
     return row
 
 
-def generateEventLog(db_connection,start_date = None, end_date =None, resource_ids = None):
+def generateEventLog(db_connection,start_date = None, end_date =None, resource_ids = None , include_bot_messages = False, include_life_cycle_start = False):
     print('Reading events from database', start_date, end_date)
     df = read_events_into_df(db_connection,start_date, end_date,resource_ids)
     # rename columns CASE_ID->case:concept:name, ACTIVITY_NAME->concept:name, TIME_OF_EVENT->time:timestamp, LIFECYCLE_PHASE->lifecycle:transition
@@ -63,6 +63,11 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
     df['EVENT'] = df['EVENT'].replace('SERVICE_CUSTOM_MESSAGE_1', 'USER_MESSAGE')
     df['EVENT'] = df['EVENT'].replace('SERVICE_CUSTOM_MESSAGE_2', 'BOT_MESSAGE')
     df['EVENT'] = df['EVENT'].replace('SERVICE_CUSTOM_MESSAGE_3', 'SERVICE_REQUEST')
+
+    if not include_bot_messages:
+        df = df[(df['EVENT'] == 'SERVICE_REQUEST') | (df['EVENT'] == 'USER_MESSAGE')]
+    if not include_life_cycle_start:
+        df = df[(df['lifecycle:transition'] == 'complete')]
 
     df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
     if df.empty:
@@ -73,6 +78,7 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
         end_date = df['time:timestamp'].max().strftime('%Y-%m-%d')
 
     df = df.apply(extract_remarks, axis=1) # extract fields from remarks column
+    df.fillna('', inplace=True) 
     
     file_name = 'event_log'+start_date+'_'+end_date+'.xes'
     pm4py.write_xes(df, file_name, case_id_key='case:concept:name')
@@ -103,9 +109,11 @@ def send_xml_file_for_bot(botName):
     if request.method == 'GET':
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
+        include_bot_messages = request.args.get('include_bot_messages') if request.args.get('include_bot_messages') is not None else False
+        include_life_cycle_start = request.args.get('include_life_cycle_start') if request.args.get('include_life_cycle_start') is not None else False
         try:
             resource_ids = get_resource_ids(db_connection, botName)
-            file_name = generateEventLog(db_connection,start_date, end_date, resource_ids)
+            file_name = generateEventLog(db_connection,start_date, end_date, resource_ids, include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
             return send_file(file_name, as_attachment=True), os.remove(file_name)
         except ValueError as e:
             return str(e), 400
