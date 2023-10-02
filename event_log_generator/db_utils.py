@@ -20,6 +20,8 @@ def read_events_into_df(db_connection,start_date = None, end_date =None, resourc
         df = pd.read_sql(statement, con=db_connection, params=(resource_ids,start_date, end_date))
     # rename columns CASE_ID->case:concept:name, ACTIVITY_NAME->concept:name, TIME_OF_EVENT->time:timestamp, LIFECYCLE_PHASE->lifecycle:transition
     df.rename(columns={'CASE_ID': 'case:concept:name', 'ACTIVITY_NAME': 'concept:name', 'TIME_OF_EVENT': 'time:timestamp', 'LIFECYCLE_PHASE': 'lifecycle:transition'}, inplace=True)
+    # convert time:timestamp to datetime
+    df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
     return df
 
 def get_db_connection(host,port, user, password, db = 'LAS2PEERMON'):
