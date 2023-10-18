@@ -69,7 +69,6 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
     if not include_life_cycle_start:
         df = df[(df['lifecycle:transition'] == 'complete')]
 
-    df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
     if df.empty:
         raise ValueError('No events found in database')
     if start_date is None:
@@ -78,8 +77,10 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
         end_date = df['time:timestamp'].max().strftime('%Y-%m-%d')
 
     df = df.apply(extract_remarks, axis=1) # extract fields from remarks column
-    df.fillna('', inplace=True) 
-    
+    df.loc[:, ["lifecycle:transition", "serviceEndpoint", "user"]] = df[["lifecycle:transition", "serviceEndpoint", "user"]].fillna('')
+    df.loc[:, ["in-service-context"]] = df[["in-service-context"]].fillna(False)
+    df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
+
     file_name = 'event_log'+start_date+'_'+end_date+'.xes'
     pm4py.write_xes(df, file_name, case_id_key='case:concept:name')
     return file_name

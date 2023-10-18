@@ -13,6 +13,8 @@ RUN mv .env.example .env
 RUN apt-get update && apt-get install -y default-mysql-client 
 RUN pip install -r requirements.txt
 
+RUN pip install gunicorn
+
 # run as privileged user
 USER root
 
