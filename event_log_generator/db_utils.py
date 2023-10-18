@@ -13,9 +13,9 @@ def read_events_into_df(db_connection,start_date = None, end_date =None, resourc
     if resource_ids is None:
         resource_ids = get_resource_ids(db_connection, botName)
     if start_date is None or end_date is None:
-        df = pd.read_sql('SELECT EVENT,CASE_ID,ACTIVITY_NAME, TIME_OF_EVENT, LIFECYCLE_PHASE, RESOURCE, RESOURCE_TYPE, REMARKS FROM LAS2PEERMON.MESSAGE WHERE CASE_ID IS NOT NULL AND RESOURCE IN %s', con=db_connection, params=(resource_ids,))
+        df = pd.read_sql('SELECT EVENT,CASE_ID,ACTIVITY_NAME, TIME_OF_EVENT, LIFECYCLE_PHASE, RESOURCE, RESOURCE_TYPE, REMARKS FROM LAS2PEERMON.EVENTLOG WHERE CASE_ID IS NOT NULL AND RESOURCE IN %s', con=db_connection, params=(resource_ids,))
     else:
-        statement = 'SELECT EVENT,CASE_ID,ACTIVITY_NAME, TIME_OF_EVENT, LIFECYCLE_PHASE, RESOURCE, RESOURCE_TYPE, REMARKS FROM LAS2PEERMON.MESSAGE WHERE CASE_ID IS NOT NULL AND RESOURCE IN %s AND TIME_STAMP BETWEEN %s AND %s'
+        statement = 'SELECT EVENT,CASE_ID,ACTIVITY_NAME, TIME_OF_EVENT, LIFECYCLE_PHASE, RESOURCE, RESOURCE_TYPE, REMARKS FROM LAS2PEERMON.EVENTLOG WHERE CASE_ID IS NOT NULL AND RESOURCE IN %s AND TIME_STAMP BETWEEN %s AND %s'
         # format the statement
         df = pd.read_sql(statement, con=db_connection, params=(resource_ids,start_date, end_date))
     # rename columns CASE_ID->case:concept:name, ACTIVITY_NAME->concept:name, TIME_OF_EVENT->time:timestamp, LIFECYCLE_PHASE->lifecycle:transition
