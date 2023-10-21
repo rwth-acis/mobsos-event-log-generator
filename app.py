@@ -57,15 +57,13 @@ def extract_remarks(row):
 def generateEventLog(db_connection,start_date = None, end_date =None, resource_ids = None , include_bot_messages = False, include_life_cycle_start = False):
     print('Reading events from database', start_date, end_date)
     df = read_events_into_df(db_connection,start_date, end_date,resource_ids)
-    # rename columns CASE_ID->case:concept:name, ACTIVITY_NAME->concept:name, TIME_OF_EVENT->time:timestamp, LIFECYCLE_PHASE->lifecycle:transition
-    df.rename(columns={'CASE_ID': 'case:concept:name', 'ACTIVITY_NAME': 'concept:name', 'TIME_OF_EVENT': 'time:timestamp', 'LIFECYCLE_PHASE': 'lifecycle:transition'}, inplace=True)
 
-    df['EVENT'] = df['EVENT'].replace('SERVICE_CUSTOM_MESSAGE_1', 'USER_MESSAGE')
-    df['EVENT'] = df['EVENT'].replace('SERVICE_CUSTOM_MESSAGE_2', 'BOT_MESSAGE')
-    df['EVENT'] = df['EVENT'].replace('SERVICE_CUSTOM_MESSAGE_3', 'SERVICE_REQUEST')
+    df['EVENT_TYPE'] = df['EVENT_TYPE'].replace('SERVICE_CUSTOM_MESSAGE_1', 'USER_MESSAGE')
+    df['EVENT_TYPE'] = df['EVENT_TYPE'].replace('SERVICE_CUSTOM_MESSAGE_2', 'BOT_MESSAGE')
+    df['EVENT_TYPE'] = df['EVENT_TYPE'].replace('SERVICE_CUSTOM_MESSAGE_3', 'SERVICE_REQUEST')
 
     if not include_bot_messages:
-        df = df[(df['EVENT'] == 'SERVICE_REQUEST') | (df['EVENT'] == 'USER_MESSAGE')]
+        df = df[(df['EVENT_TYPE'] == 'SERVICE_REQUEST') | (df['EVENT_TYPE'] == 'USER_MESSAGE')]
     if not include_life_cycle_start:
         df = df[(df['lifecycle:transition'] == 'complete')]
 

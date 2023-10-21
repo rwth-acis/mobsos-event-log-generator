@@ -9,17 +9,17 @@ def read_events_into_df(db_connection,start_date = None, end_date =None, resourc
     """
     if db_connection is None:
         raise ValueError('db_connection must be set')
-    print('Reading events from database', start_date, end_date)
+    print(f'Reading events from database from {start_date} until {end_date}')
     if resource_ids is None:
         resource_ids = get_resource_ids(db_connection, botName)
     if start_date is None or end_date is None:
-        df = pd.read_sql('SELECT EVENT,CASE_ID,ACTIVITY_NAME, TIME_OF_EVENT, LIFECYCLE_PHASE, RESOURCE, RESOURCE_TYPE, REMARKS FROM LAS2PEERMON.EVENTLOG WHERE CASE_ID IS NOT NULL AND RESOURCE IN %s', con=db_connection, params=(resource_ids,))
+        statement = 'SELECT EVENT_TYPE,CASE_ID,ACTIVITY_NAME, TIME_STAMP, LIFECYCLE_PHASE, RESOURCE, RESOURCE_TYPE, REMARKS FROM LAS2PEERMON.EVENTLOG WHERE CASE_ID IS NOT NULL AND RESOURCE IN %s'
+        df = pd.read_sql(statement, con=db_connection, params=(resource_ids,))
     else:
-        statement = 'SELECT EVENT,CASE_ID,ACTIVITY_NAME, TIME_OF_EVENT, LIFECYCLE_PHASE, RESOURCE, RESOURCE_TYPE, REMARKS FROM LAS2PEERMON.EVENTLOG WHERE CASE_ID IS NOT NULL AND RESOURCE IN %s AND TIME_STAMP BETWEEN %s AND %s'
+        statement = 'SELECT EVENT_TYPE,CASE_ID,ACTIVITY_NAME, TIME_STAMP, LIFECYCLE_PHASE, RESOURCE, RESOURCE_TYPE, REMARKS FROM LAS2PEERMON.EVENTLOG WHERE CASE_ID IS NOT NULL AND RESOURCE IN %s AND TIME_STAMP BETWEEN %s AND %s'
         # format the statement
         df = pd.read_sql(statement, con=db_connection, params=(resource_ids,start_date, end_date))
-    # rename columns CASE_ID->case:concept:name, ACTIVITY_NAME->concept:name, TIME_OF_EVENT->time:timestamp, LIFECYCLE_PHASE->lifecycle:transition
-    df.rename(columns={'CASE_ID': 'case:concept:name', 'ACTIVITY_NAME': 'concept:name', 'TIME_OF_EVENT': 'time:timestamp', 'LIFECYCLE_PHASE': 'lifecycle:transition'}, inplace=True)
+    df.rename(columns={'CASE_ID': 'case:concept:name', 'ACTIVITY_NAME': 'concept:name', 'TIME_STAMP': 'time:timestamp', 'LIFECYCLE_PHASE': 'lifecycle:transition'}, inplace=True)
     # convert time:timestamp to datetime
     df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
     return df
@@ -56,4 +56,4 @@ def get_resource_ids(db_connection,botName):
         raise ValueError('botName must be set')
     df = pd.read_sql('SELECT REMARKS->>"$.agentId" as id from MESSAGE where REMARKS->>"$.botName"=%s', con=db_connection, params=(botName,))
 
-    return df['id'].values.tolist()
+    return list(filter(lambda value: value is not None,df['id'].values.tolist()))
