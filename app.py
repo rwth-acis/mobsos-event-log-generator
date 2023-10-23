@@ -142,10 +142,10 @@ def send_xml_file_for_bot(botName):
 
 if __name__ == '__main__':
     print('Starting event log generator')
-    app.run(port=port, debug=True)
     file_handler = logging.FileHandler('app.log')
     file_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(file_handler)
+    app.run(port=port, debug=True)
 
 
 def get_resource_ids_from_bot_manager(bot_manager_url,botName):
