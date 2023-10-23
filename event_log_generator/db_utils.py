@@ -54,6 +54,6 @@ def get_resource_ids(db_connection,botName):
         raise ValueError('db_connection must be set')
     if botName is None:
         raise ValueError('botName must be set')
-    df = pd.read_sql('SELECT REMARKS->>"$.agentId" as id from MESSAGE where REMARKS->>"$.botName"=%s', con=db_connection, params=(botName,))
+    df = pd.read_sql('SELECT REMARKS->>"$.agentId" as id from LAS2PEERMON.MESSAGE where REMARKS->>"$.botName"=%s', con=db_connection, params=(botName,))
 
     return list(filter(lambda value: value is not None,df['id'].values.tolist()))

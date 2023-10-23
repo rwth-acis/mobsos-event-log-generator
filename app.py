@@ -118,6 +118,8 @@ def send_xml_file_for_bot(botName):
         include_life_cycle_start = request.args.get('include_life_cycle_start') if request.args.get('include_life_cycle_start') is not None else False
         try:
             resource_ids = get_resource_ids(db_connection, botName)
+            if len(resource_ids) == 0:
+                return 'No resource ids found for bot', 400
             file_name = generateEventLog(db_connection,start_date, end_date, resource_ids, include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
             return send_file(file_name, as_attachment=True), os.remove(file_name)
         except ValueError as e:
