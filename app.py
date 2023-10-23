@@ -75,7 +75,7 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
         df = df[(df['lifecycle:transition'] == 'complete')]
 
     if df.empty:
-        raise ValueError('No events found in database')
+        return None
     if start_date is None:
         start_date = df['time:timestamp'].min().strftime('%Y-%m-%d')
     if end_date is None:
@@ -100,6 +100,8 @@ def send_xml_file_for_resource(resource_id):
         end_date = request.args.get('end_date')
         try:
             file_name = generateEventLog(db_connection,start_date, end_date, list(resource_id))
+            if file_name is None:
+                return 'No events found for resource', 204
             return send_file(file_name, as_attachment=True), os.remove(file_name)
         except ValueError as e:
             return str(e), 400
@@ -128,6 +130,8 @@ def send_xml_file_for_bot(botName):
             if len(resource_ids) == 0:
                 return 'No resource ids found for bot', 400
             file_name = generateEventLog(db_connection,start_date, end_date, resource_ids, include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
+            if file_name is None:
+                return 'No events found for resource', 204
             return send_file(file_name, as_attachment=True), os.remove(file_name)
         except ValueError as e:
             print(e)
