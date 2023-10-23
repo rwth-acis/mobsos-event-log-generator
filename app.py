@@ -123,8 +123,8 @@ def send_xml_file_for_bot(botName):
             }, 400
         bot_manager_url = request.args.get('bot-manager-url')
         try:
-            # resource_ids = get_resource_ids_from_bot_manager(bot_manager_url,botName)
-            resource_ids +=  get_resource_ids_from_db(db_connection, botName)
+            resource_ids = get_resource_ids_from_bot_manager(bot_manager_url,botName)
+            # resource_ids +=  get_resource_ids_from_db(db_connection, botName)
             if len(resource_ids) == 0:
                 return 'No resource ids found for bot', 400
             file_name = generateEventLog(db_connection,start_date, end_date, resource_ids, include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
