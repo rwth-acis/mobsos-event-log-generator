@@ -82,8 +82,10 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
         end_date = df['time:timestamp'].max().strftime('%Y-%m-%d')
 
     df = df.apply(extract_remarks, axis=1) # extract fields from remarks column
-    df.loc[:, ["lifecycle:transition", "serviceEndpoint", "user"]] = df[["lifecycle:transition", "serviceEndpoint", "user"]].fillna('')
-    df.loc[:, ["in-service-context"]] = df[["in-service-context"]].fillna(False)
+    if (["lifecycle:transition", "serviceEndpoint", "user"] in df.columns):
+        df.loc[:, ["lifecycle:transition", "serviceEndpoint", "user"]] = df[["lifecycle:transition", "serviceEndpoint", "user"]].fillna('')
+    if (["in-service-context"] in df.columns):
+        df.loc[:, ["in-service-context"]] = df[["in-service-context"]].fillna(False)
     df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
 
     file_name = 'event_log'+start_date+'_'+end_date+'.xes'
