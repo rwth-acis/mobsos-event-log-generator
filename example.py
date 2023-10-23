@@ -1,7 +1,3 @@
-
-
-from sqlalchemy import create_engine
-import pandas as pd
 import os
 import pm4py
 from event_log_generator import db_utils
