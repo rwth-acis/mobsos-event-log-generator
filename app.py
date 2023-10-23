@@ -5,8 +5,9 @@ import os
 import json
 from event_log_generator import read_events_into_df
 from event_log_generator import get_db_connection
-from event_log_generator import get_resource_ids
+from event_log_generator import get_resource_ids_from_db
 import logging
+import requests
 
 try:
     import psutil
@@ -116,15 +117,25 @@ def send_xml_file_for_bot(botName):
         end_date = request.args.get('end_date')
         include_bot_messages = request.args.get('include_bot_messages') if request.args.get('include_bot_messages') is not None else False
         include_life_cycle_start = request.args.get('include_life_cycle_start') if request.args.get('include_life_cycle_start') is not None else False
+        if 'bot-manager-url' not in request.args:
+            return {
+                "error": "bot-manager-url parameter is missing"
+            }, 400
+        bot_manager_url = request.args.get('bot-manager-url')
         try:
-            resource_ids = get_resource_ids(db_connection, botName)
+            # resource_ids = get_resource_ids_from_bot_manager(bot_manager_url,botName)
+            resource_ids +=  get_resource_ids_from_db(db_connection, botName)
             if len(resource_ids) == 0:
                 return 'No resource ids found for bot', 400
             file_name = generateEventLog(db_connection,start_date, end_date, resource_ids, include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
             return send_file(file_name, as_attachment=True), os.remove(file_name)
         except ValueError as e:
+            print(e)
+            logger.error(e)
             return str(e), 400
         except Exception as e:
+            print(e)
+            logger.error(e)
             return str(e), 500
     else:
         return 'Method not allowed', 405
@@ -135,3 +146,38 @@ if __name__ == '__main__':
     file_handler = logging.FileHandler('app.log')
     file_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(file_handler)
+
+
+def get_resource_ids_from_bot_manager(bot_manager_url,botName):
+    """
+    This function returns the resource ids of the bot
+
+    Parameters
+    ----------
+    bot_manager_url : string
+        URL of the bot manager
+
+    Returns
+    -------
+    resource_ids : list
+        List of resource ids
+    """
+    if bot_manager_url is None:
+        raise ValueError('bot_manager_url must be set')
+    print("Getting resource ids from bot manager", bot_manager_url+"/bots")
+    response = requests.get(bot_manager_url + '/bots')
+    try:
+        data = response.json()
+        keys = []
+
+        for key, value in data.items():
+            if isinstance(value, dict) and "name" in value and value["name"] == botName:
+                keys.append(key)
+
+        return keys
+
+    except json.JSONDecodeError as e:
+        print("Invalid JSON format:", e)
+        return []
+
+    

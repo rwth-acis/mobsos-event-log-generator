@@ -11,7 +11,7 @@ def read_events_into_df(db_connection,start_date = None, end_date =None, resourc
         raise ValueError('db_connection must be set')
     print(f'Reading events from database from {start_date} until {end_date}')
     if resource_ids is None:
-        resource_ids = get_resource_ids(db_connection, botName)
+        resource_ids = get_resource_ids_from_db(db_connection, botName)
     if start_date is None or end_date is None:
         statement = 'SELECT EVENT_TYPE,CASE_ID,ACTIVITY_NAME, TIME_STAMP, LIFECYCLE_PHASE, RESOURCE, RESOURCE_TYPE, REMARKS FROM LAS2PEERMON.EVENTLOG WHERE CASE_ID IS NOT NULL AND RESOURCE IN %s'
         df = pd.read_sql(statement, con=db_connection, params=(resource_ids,))
@@ -34,7 +34,7 @@ def get_db_connection(host,port, user, password, db = 'LAS2PEERMON'):
         raise ValueError('Could not connect to database')
     return db_connection
 
-def get_resource_ids(db_connection,botName):
+def get_resource_ids_from_db(db_connection,botName):
     """
     This function returns the resource ids of the bot
 
