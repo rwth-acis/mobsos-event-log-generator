@@ -6,6 +6,7 @@ import json
 from event_log_generator import read_events_into_df
 from event_log_generator import get_db_connection
 from event_log_generator import get_resource_ids
+import logging
 
 try:
     import psutil
@@ -43,6 +44,11 @@ if port is None:
 
 
 app = Flask(__name__)
+
+# Define a logger
+log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+logging.basicConfig(level=logging.DEBUG, format=log_format, filename='app.log')
+logger = logging.getLogger(__name__)
 
 def extract_remarks(row):
     """
@@ -124,3 +130,6 @@ def send_xml_file_for_bot(botName):
 if __name__ == '__main__':
     print('Starting event log generator')
     app.run(port=port, debug=True)
+    file_handler = logging.FileHandler('app.log')
+    file_handler.setFormatter(logging.Formatter(log_format))
+    logger.addHandler(file_handler)
