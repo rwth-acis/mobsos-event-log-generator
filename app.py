@@ -62,17 +62,20 @@ def extract_remarks(row):
 
 
 def generateEventLog(db_connection,start_date = None, end_date =None, resource_ids = None , include_bot_messages = False, include_life_cycle_start = False):
-    print('Reading events from database', start_date, end_date)
+    logger.info('Reading events from database')
     df = read_events_into_df(db_connection,start_date, end_date,resource_ids)
 
     df['EVENT_TYPE'] = df['EVENT_TYPE'].replace('SERVICE_CUSTOM_MESSAGE_1', 'USER_MESSAGE')
     df['EVENT_TYPE'] = df['EVENT_TYPE'].replace('SERVICE_CUSTOM_MESSAGE_2', 'BOT_MESSAGE')
     df['EVENT_TYPE'] = df['EVENT_TYPE'].replace('SERVICE_CUSTOM_MESSAGE_3', 'SERVICE_REQUEST')
 
+    logger.info('Events read from database')
+
     if not include_bot_messages:
         df = df[(df['EVENT_TYPE'] == 'SERVICE_REQUEST') | (df['EVENT_TYPE'] == 'USER_MESSAGE')]
     if not include_life_cycle_start:
         df = df[(df['lifecycle:transition'] == 'complete')]
+
 
     if df.empty:
         return None
@@ -81,6 +84,7 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
     if end_date is None:
         end_date = df['time:timestamp'].max().strftime('%Y-%m-%d')
 
+    logger.info('Generating event log for resource ids: '+str(resource_ids))
     df = df.apply(extract_remarks, axis=1) # extract fields from remarks column
     if (["lifecycle:transition", "serviceEndpoint", "user"] in df.columns):
         df.loc[:, ["lifecycle:transition", "serviceEndpoint", "user"]] = df[["lifecycle:transition", "serviceEndpoint", "user"]].fillna('')
@@ -88,7 +92,10 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
         df.loc[:, ["in-service-context"]] = df[["in-service-context"]].fillna(False)
     df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
 
+    logger.info('Event log generated for resource ids: '+str(resource_ids))
+
     file_name = 'event_log'+start_date+'_'+end_date+'.xes'
+    logger.info('Writing event log to file: '+file_name)
     pm4py.write_xes(df, file_name, case_id_key='case:concept:name')
     return file_name
 
@@ -170,7 +177,7 @@ def get_resource_ids_from_bot_manager(bot_manager_url,botName):
     """
     if bot_manager_url is None:
         raise ValueError('bot_manager_url must be set')
-    print("Getting resource ids from bot manager", bot_manager_url+"/bots")
+    logger.info(f"Getting resource ids from bot manager {bot_manager_url}/bots")
     response = requests.get(bot_manager_url + '/bots')
     try:
         data = response.json()
