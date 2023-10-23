@@ -86,9 +86,13 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
 
     logger.info('Generating event log for resource ids: '+str(resource_ids))
     df = df.apply(extract_remarks, axis=1) # extract fields from remarks column
-    if (["lifecycle:transition", "serviceEndpoint", "user"] in df.columns):
-        df.loc[:, ["lifecycle:transition", "serviceEndpoint", "user"]] = df[["lifecycle:transition", "serviceEndpoint", "user"]].fillna('')
-    if (["in-service-context"] in df.columns):
+    if ('lifecycle:transition'  in df.columns):
+        df.loc[:, ['lifecycle:transition']] = df[['lifecycle:transition']].fillna('complete')
+    if ("serviceEndpoint" in df.columns):
+        df.loc[:, ["serviceEndpoint"]] = df[["serviceEndpoint"]].fillna('')
+    if ("user" in df.columns):
+        df.loc[:, ["user"]] = df[["user"]].fillna('')    
+    if ("in-service-context" in df.columns):
         df.loc[:, ["in-service-context"]] = df[["in-service-context"]].fillna(False)
     df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
 
