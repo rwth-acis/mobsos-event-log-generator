@@ -127,7 +127,7 @@ def send_xml_file_for_resource(resource_id):
 # route for generating event log for a bot name
 @app.route('/bot/<botName>', methods=['GET'])
 def send_xml_file_for_bot(botName):
-    logger.info('Request received for bot', botName)
+    logger.info('Request received for bot ' + botName)
     if request.method == 'GET':
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
