@@ -78,6 +78,7 @@ def generateEventLog(db_connection,start_date = None, end_date =None, resource_i
 
 
     if df.empty:
+        logger.info('No events found for resource ids: '+str(resource_ids))
         return None
     if start_date is None:
         start_date = df['time:timestamp'].min().strftime('%Y-%m-%d')
@@ -126,12 +127,12 @@ def send_xml_file_for_resource(resource_id):
 # route for generating event log for a bot name
 @app.route('/bot/<botName>', methods=['GET'])
 def send_xml_file_for_bot(botName):
-    print('Request received for bot', botName)
+    logger.info('Request received for bot', botName)
     if request.method == 'GET':
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
-        include_bot_messages = request.args.get('include_bot_messages') if request.args.get('include_bot_messages') is not None else False
-        include_life_cycle_start = request.args.get('include_life_cycle_start') if request.args.get('include_life_cycle_start') is not None else False
+        include_bot_messages = request.args.get('include_bot_messages',False) 
+        include_life_cycle_start = request.args.get('include_life_cycle_start',False) 
         if 'bot-manager-url' not in request.args:
             return {
                 "error": "bot-manager-url parameter is missing"
