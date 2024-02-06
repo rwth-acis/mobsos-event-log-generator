@@ -190,7 +190,8 @@ def get_resource_ids_from_bot_manager(bot_manager_url,botName):
         for key, value in data.items():
             if isinstance(value, dict) and "name" in value and value["name"] == botName:
                 keys.append(key)
-
+        if len(keys) == 0:
+            logger.error(f"No resource ids found for bot {botName}")
         return keys
 
     except json.JSONDecodeError as e:
