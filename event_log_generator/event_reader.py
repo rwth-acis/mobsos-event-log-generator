@@ -1,9 +1,49 @@
 import sqlalchemy
 import pandas as pd
-
+import json
 # pip install dogpile.cache for caching the sql results
 
-def read_events_into_df(db_connection,start_date = None, end_date =None, resource_ids = None, botName = None):
+
+def generate_eventlog(db_connection, start_date=None, end_date=None, resource_ids=None, include_bot_messages=False, include_life_cycle_start=False):
+    df = _read_events_into_df(db_connection, start_date, end_date, resource_ids)
+
+    df['EVENT_TYPE'] = df['EVENT_TYPE'].replace(
+        'SERVICE_CUSTOM_MESSAGE_1', 'USER_MESSAGE')
+    df['EVENT_TYPE'] = df['EVENT_TYPE'].replace(
+        'SERVICE_CUSTOM_MESSAGE_2', 'BOT_MESSAGE')
+    df['EVENT_TYPE'] = df['EVENT_TYPE'].replace(
+        'SERVICE_CUSTOM_MESSAGE_3', 'SERVICE_REQUEST')
+
+    if not include_bot_messages:
+        df = df[(df['EVENT_TYPE'] == 'SERVICE_REQUEST')
+                | (df['EVENT_TYPE'] == 'USER_MESSAGE')]
+    if not include_life_cycle_start:
+        df = df[(df['lifecycle:transition'] == 'complete')]
+
+    if df.empty:
+        return df
+    if start_date is None:
+        start_date = df['time:timestamp'].min().strftime('%Y-%m-%d')
+    if end_date is None:
+        end_date = df['time:timestamp'].max().strftime('%Y-%m-%d')
+
+    # extract fields from remarks column
+    df = df.apply(_extract_remarks, axis=1)
+    if ('lifecycle:transition' in df.columns):
+        df.loc[:, ['lifecycle:transition']] = df[[
+            'lifecycle:transition']].fillna('complete')
+    if ("serviceEndpoint" in df.columns):
+        df.loc[:, ["serviceEndpoint"]] = df[["serviceEndpoint"]].fillna('')
+    if ("user" in df.columns):
+        df.loc[:, ["user"]] = df[["user"]].fillna('')
+    if ("in-service-context" in df.columns):
+        df.loc[:, ["in-service-context"]
+               ] = df[["in-service-context"]].fillna(False)
+    df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
+    return df
+
+
+def _read_events_into_df(db_connection,start_date = None, end_date =None, resource_ids = None, botName = None):
     """
     This function reads the events from the database and returns a pandas dataframe
     """
@@ -57,3 +97,12 @@ def get_resource_ids_from_db(db_connection,botName):
     df = pd.read_sql('SELECT REMARKS->>"$.agentId" as id from LAS2PEERMON.MESSAGE where REMARKS->>"$.botName"=%s', con=db_connection, params=(botName,))
 
     return list(filter(lambda value: value is not None,df['id'].values.tolist()))
+
+def _extract_remarks(row):
+    """
+    Extracts the fields from the remarks column and adds them to the row
+    """
+    json_data = json.loads(row['REMARKS'])
+    for key in json_data.keys():
+        row[key] = json_data[key]
+    return row
