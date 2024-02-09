@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 import pandas as pd
 import os
 import json
-from event_log_generator import get_db_connection
+from event_log_generator.event_reader import get_db_connection
 from event_log_generator.event_reader import generate_eventlog
 import logging
 import requests
@@ -80,7 +80,7 @@ def send_xml_file_for_resource(resource_id):
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         try:
-            file_name = generateXESfile(db_connection,start_date, end_date, list(resource_id))
+            file_name = generateXESfile(db_connection,start_date, end_date, [resource_id])
             if file_name is None:
                 return 'No events found for resource', 204
             return send_file(file_name, as_attachment=True), os.remove(file_name)

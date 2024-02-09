@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='event_reader',
-    version='0.1.8',
+    version='0.1.9',
     description='A package to read events from a database using SQLAlchemy and Pandas',
     author='Ben Lakhoune',
     author_email='a.b.lakhoune@gmail.com',
@@ -17,6 +17,6 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
     ],
-    py_modules=['db_utils'], 
+    py_modules=['event_reader'], 
     long_description='A package to read events from a database using SQLAlchemy and Pandas'
 )
