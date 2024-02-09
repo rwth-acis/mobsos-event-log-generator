@@ -3,9 +3,8 @@ from sqlalchemy import create_engine
 import pandas as pd
 import os
 import json
-from event_log_generator import read_events_into_df
-from event_log_generator import get_db_connection
-from event_log_generator import get_resource_ids_from_db
+from event_log_generator.event_reader import get_db_connection
+from event_log_generator.event_reader import generate_eventlog
 import logging
 import requests
 
@@ -51,57 +50,25 @@ log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=log_format, filename='app.log')
 logger = logging.getLogger(__name__)
 
-def extract_remarks(row):
-    """
-    Extracts the fields from the remarks column and adds them to the row
-    """
-    json_data = json.loads(row['REMARKS'])
-    for key in json_data.keys():
-        row[key] = json_data[key]
-    return row
 
 
-def generateEventLog(db_connection,start_date = None, end_date =None, resource_ids = None , include_bot_messages = False, include_life_cycle_start = False):
+def generateXESfile(db_connection,start_date = None, end_date =None, resource_ids = None , include_bot_messages = False, include_life_cycle_start = False):
     logger.info('Reading events from database')
-    df = read_events_into_df(db_connection,start_date, end_date,resource_ids)
+    event_log = generate_eventlog(db_connection, start_date, end_date, resource_ids, include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
 
-    df['EVENT_TYPE'] = df['EVENT_TYPE'].replace('SERVICE_CUSTOM_MESSAGE_1', 'USER_MESSAGE')
-    df['EVENT_TYPE'] = df['EVENT_TYPE'].replace('SERVICE_CUSTOM_MESSAGE_2', 'BOT_MESSAGE')
-    df['EVENT_TYPE'] = df['EVENT_TYPE'].replace('SERVICE_CUSTOM_MESSAGE_3', 'SERVICE_REQUEST')
-
-    logger.info('Events read from database')
-
-    if not include_bot_messages:
-        df = df[(df['EVENT_TYPE'] == 'SERVICE_REQUEST') | (df['EVENT_TYPE'] == 'USER_MESSAGE')]
-    if not include_life_cycle_start:
-        df = df[(df['lifecycle:transition'] == 'complete')]
-
-
-    if df.empty:
+    if event_log is None or event_log.empty:
         logger.info('No events found for resource ids: '+str(resource_ids))
         return None
+    logger.info('Events read from database')
+
     if start_date is None:
-        start_date = df['time:timestamp'].min().strftime('%Y-%m-%d')
+        start_date = event_log['time:timestamp'].min().strftime('%Y-%m-%d')
     if end_date is None:
-        end_date = df['time:timestamp'].max().strftime('%Y-%m-%d')
-
-    logger.info('Generating event log for resource ids: '+str(resource_ids))
-    df = df.apply(extract_remarks, axis=1) # extract fields from remarks column
-    if ('lifecycle:transition'  in df.columns):
-        df.loc[:, ['lifecycle:transition']] = df[['lifecycle:transition']].fillna('complete')
-    if ("serviceEndpoint" in df.columns):
-        df.loc[:, ["serviceEndpoint"]] = df[["serviceEndpoint"]].fillna('')
-    if ("user" in df.columns):
-        df.loc[:, ["user"]] = df[["user"]].fillna('')    
-    if ("in-service-context" in df.columns):
-        df.loc[:, ["in-service-context"]] = df[["in-service-context"]].fillna(False)
-    df['time:timestamp'] = pd.to_datetime(df['time:timestamp'])
-
-    logger.info('Event log generated for resource ids: '+str(resource_ids))
+        end_date = event_log['time:timestamp'].max().strftime('%Y-%m-%d')
 
     file_name = 'event_log'+start_date+'_'+end_date+'.xes'
     logger.info('Writing event log to file: '+file_name)
-    pm4py.write_xes(df, file_name, case_id_key='case:concept:name')
+    pm4py.write_xes(event_log, file_name, case_id_key='case:concept:name')
     return file_name
 
 
@@ -113,7 +80,7 @@ def send_xml_file_for_resource(resource_id):
         start_date = request.args.get('start_date')
         end_date = request.args.get('end_date')
         try:
-            file_name = generateEventLog(db_connection,start_date, end_date, list(resource_id))
+            file_name = generateXESfile(db_connection,start_date, end_date, [resource_id])
             if file_name is None:
                 return 'No events found for resource', 204
             return send_file(file_name, as_attachment=True), os.remove(file_name)
@@ -143,7 +110,7 @@ def send_xml_file_for_bot(botName):
             # resource_ids +=  get_resource_ids_from_db(db_connection, botName)
             if len(resource_ids) == 0:
                 return 'No resource ids found for bot', 500
-            file_name = generateEventLog(db_connection,start_date, end_date, resource_ids, include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
+            file_name = generateXESfile(db_connection,start_date, end_date, resource_ids, include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
             if file_name is None:
                 return 'No events found for resource', 204
             return send_file(file_name, as_attachment=True), os.remove(file_name)
