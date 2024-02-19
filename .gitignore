@@ -161,3 +161,4 @@ cython_debug/
 test.xes
 .vscode/launch.json
 .vscode/settings.json
+event_logs

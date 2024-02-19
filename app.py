@@ -8,6 +8,9 @@ from event_log_generator.event_reader import get_db_connection
 from event_log_generator.event_reader import generate_eventlog
 import logging
 import requests
+from flask_apscheduler import APScheduler
+import shutil
+from tasks import clean_directory
 
 try:
     import psutil
@@ -18,6 +21,8 @@ except psutil.NoSuchProcess:
     print("No such process")
     parent_name = "unknown"
 import pm4py
+
+
 
 # current directory
 current_dir = os.path.dirname(os.path.realpath(__file__))
@@ -30,6 +35,8 @@ mysql_host = os.environ['MYSQL_HOST']
 mysql_db = os.environ['MYSQL_DB']
 mysql_port = os.environ['MYSQL_PORT']
 
+cleanup_interval = os.environ.get('CLEANUP_INTERVAL', 60)
+
 db_connection = get_db_connection(
     mysql_host, mysql_port, mysql_user, mysql_password, mysql_db)
 
@@ -40,13 +47,30 @@ if port is None:
     port = 8087
 
 
+class Config(object):
+    JOBS = [
+        {
+            'id': 'cleaning_job',
+            'func': 'tasks:clean_directory',
+            'args': (os.path.join(current_dir, 'event_logs'),),
+            'trigger': 'interval',
+            'seconds': int(cleanup_interval)
+        }
+    ]
+
+    SCHEDULER_API_ENABLED = True
+
 app = Flask(__name__)
+app.config.from_object(Config())
 
 # Define a logger
 log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 logging.basicConfig(level=logging.DEBUG, format=log_format, filename='app.log')
 logger = logging.getLogger(__name__)
 
+scheduler = APScheduler()
+scheduler.init_app(app)
+scheduler.start()
 
 @app.route('/resource/<resource_id>', methods=['GET'])
 def send_xml_file_for_resource(resource_id):
@@ -58,16 +82,16 @@ def send_xml_file_for_resource(resource_id):
         'include_life_cycle_start', False)
     use_cache = request.args.get('use_cache', False)
     file_name = get_filename(start_date, end_date, [resource_id],
-                                include_bot_messages, include_life_cycle_start)
-    if use_cache and os.path.exists(file_name):
-        return send_file(file_name, as_attachment=True)
-    else: 
+                             include_bot_messages, include_life_cycle_start)
+    if use_cache is not None and os.path.exists(os.path.join(current_dir, 'event_logs', file_name)):
+        return send_file(os.path.join(current_dir, 'event_logs', file_name), as_attachment=True)
+    else:
         try:
             file_name = generateXESfile(
                 db_connection, start_date, end_date, [resource_id], include_bot_messages, include_life_cycle_start)
             if file_name is None:
                 return 'No events found for resource', 204
-            return send_file(file_name, as_attachment=True)
+            return send_file(os.path.join(current_dir, 'event_logs', file_name), as_attachment=True)
         except ValueError as e:
             return str(e), 400
         except Exception as e:
@@ -96,8 +120,8 @@ def send_xml_file_for_bot(botName):
             if len(resource_ids) == 0:
                 return 'No resource ids found for bot', 500
             file_name = get_filename(start_date, end_date, resource_ids,
-                                    include_bot_messages, include_life_cycle_start)
-            if use_cache and os.path.exists(file_name):
+                                     include_bot_messages, include_life_cycle_start)
+            if use_cache and os.path.exists(os.path.join(current_dir, file_name)):
                 return send_file(file_name, as_attachment=True)
             else:
                 file_name = generateXESfile(db_connection, start_date, end_date, resource_ids,
@@ -118,7 +142,6 @@ def send_xml_file_for_bot(botName):
 
 
 if __name__ == '__main__':
-    print('Starting event log generator')
     file_handler = logging.FileHandler('app.log')
     file_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(file_handler)
@@ -127,6 +150,8 @@ if __name__ == '__main__':
 
 def generateXESfile(db_connection, start_date=None, end_date=None, resource_ids=None, include_bot_messages=False, include_life_cycle_start=False):
     logger.info('Reading events from database')
+    if not os.path.exists(os.path.join(current_dir, 'event_logs')):
+        os.makedirs(os.path.join(current_dir, 'event_logs'))
     event_log = generate_eventlog(db_connection, start_date, end_date, resource_ids,
                                   include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
 
@@ -135,19 +160,15 @@ def generateXESfile(db_connection, start_date=None, end_date=None, resource_ids=
         return None
     logger.info('Events read from database')
 
-    if start_date is None:
-        start_date = event_log['time:timestamp'].min().strftime('%Y-%m-%d')
-    if end_date is None:
-        end_date = event_log['time:timestamp'].max().strftime('%Y-%m-%d')
-
-    file_name = get_filename(start_date=None, end_date=None, resource_ids=None,
-                             include_bot_messages=False, include_life_cycle_start=False)
-    pm4py.write_xes(event_log, file_name, case_id_key='case:concept:name')
+    file_name = get_filename(start_date, end_date, resource_ids,
+                             include_bot_messages, include_life_cycle_start)
+    pm4py.write_xes(event_log, 'event_logs/'+file_name,
+                    case_id_key='case:concept:name')
     return file_name
 
 
 def get_filename(start_date=None, end_date=None, resource_ids=None, include_bot_messages=False, include_life_cycle_start=False):
-    filename = f"{''.join(resource_ids).encode('utf-8')}"
+    filename = f"{''.join(resource_ids)}"
     if start_date is not None:
         filename += f"-{start_date}"
     if end_date is not None:
