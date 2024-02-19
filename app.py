@@ -23,7 +23,6 @@ except psutil.NoSuchProcess:
 import pm4py
 
 
-
 # current directory
 current_dir = os.path.dirname(os.path.realpath(__file__))
 # load environment variables
@@ -60,6 +59,7 @@ class Config(object):
 
     SCHEDULER_API_ENABLED = True
 
+
 app = Flask(__name__)
 app.config.from_object(Config())
 
@@ -71,6 +71,7 @@ logger = logging.getLogger(__name__)
 scheduler = APScheduler()
 scheduler.init_app(app)
 scheduler.start()
+
 
 @app.route('/resource/<resource_id>', methods=['GET'])
 def send_xml_file_for_resource(resource_id):
@@ -89,6 +90,34 @@ def send_xml_file_for_resource(resource_id):
         try:
             file_name = generateXESfile(
                 db_connection, start_date, end_date, [resource_id], include_bot_messages, include_life_cycle_start)
+            if file_name is None:
+                return 'No events found for resource', 204
+            return send_file(os.path.join(current_dir, 'event_logs', file_name), as_attachment=True)
+        except ValueError as e:
+            return str(e), 400
+        except Exception as e:
+            return str(e), 500
+
+
+@app.route('/resources', methods=['POST'])
+def send_xml_files_for_resources():
+    body = request.get_json()
+    resource_ids = body.get('resource_ids', [])
+    start_date = request.args.get('start_date', None)
+    end_date = request.args.get('end_date', None)
+    include_bot_messages = request.args.get('include_bot_messages', False)
+    include_life_cycle_start = request.args.get(
+        'include_life_cycle_start', False)
+    use_cache = request.args.get('use_cache', False)
+
+    file_name = get_filename(start_date, end_date, resource_ids,
+                             include_bot_messages, include_life_cycle_start)
+    if use_cache is not None and os.path.exists(os.path.join(current_dir, 'event_logs', file_name)):
+        return send_file(os.path.join(current_dir, 'event_logs', file_name), as_attachment=True)
+    else:
+        try:
+            file_name = generateXESfile(
+                db_connection, start_date, end_date, resource_ids, include_bot_messages, include_life_cycle_start)
             if file_name is None:
                 return 'No events found for resource', 204
             return send_file(os.path.join(current_dir, 'event_logs', file_name), as_attachment=True)
