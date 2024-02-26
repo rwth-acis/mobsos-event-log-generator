@@ -15,6 +15,8 @@ RUN pip install -r requirements.txt
 
 RUN pip install gunicorn
 
+RUN mkdir event_logs
+
 # run as privileged user
 USER root
 
