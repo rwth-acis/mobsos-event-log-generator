@@ -15,7 +15,7 @@ RUN pip install -r requirements.txt
 
 RUN pip install gunicorn
 
-RUN mkdir event_logs
+RUN mkdir -p /app/event_logs
 
 # run as privileged user
 USER root
@@ -23,5 +23,4 @@ USER root
 # Expose the port the Flask app will be running on
 EXPOSE 8087
 
-# Start the Flask app using the gunicorn WSGI server
-CMD ["gunicorn", "app:app", "-b", "0.0.0.0:8087"]
+CMD ["gunicorn", "app:app", "-b", "0.0.0.0:8087", "--workers=4", "--threads=2"]

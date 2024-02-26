@@ -206,7 +206,6 @@ def generateXESfile(db_connection, start_date=None, end_date=None, resource_ids=
         os.makedirs(os.path.join(current_dir, 'event_logs'))
     event_log = generate_eventlog(db_connection, start_date, end_date, resource_ids,
                                   include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
-
     if event_log is None or event_log.empty:
         logger.info('No events found for resource ids: '+str(resource_ids))
         return None
