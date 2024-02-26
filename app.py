@@ -88,11 +88,11 @@ def send_xml_file_for_resource(resource_id):
         return send_file(os.path.join(current_dir, 'event_logs', file_name), as_attachment=True)
     else:
         try:
-            file_name = generateXESfile(
+            filepath = generateXESfile(
                 db_connection, start_date, end_date, [resource_id], include_bot_messages, include_life_cycle_start)
             if file_name is None:
                 return 'No events found for resource', 204
-            return send_file(os.path.join(current_dir, 'event_logs', file_name), as_attachment=True)
+            return send_file(filepath, as_attachment=True)
         except ValueError as e:
             return str(e), 400
         except Exception as e:
@@ -116,11 +116,11 @@ def send_xml_files_for_resources():
         return send_file(os.path.join(current_dir, 'event_logs', file_name), as_attachment=True)
     else:
         try:
-            file_name = generateXESfile(
+            file_path = generateXESfile(
                 db_connection, start_date, end_date, resource_ids, include_bot_messages, include_life_cycle_start)
             if file_name is None:
                 return 'No events found for resource', 204
-            return send_file(os.path.join(current_dir, 'event_logs', file_name), as_attachment=True)
+            return send_file(file_path, as_attachment=True)
         except ValueError as e:
             return str(e), 400
         except Exception as e:
@@ -153,11 +153,11 @@ def send_xml_file_for_bot(botName):
             if use_cache and os.path.exists(os.path.join(current_dir, file_name)):
                 return send_file(file_name, as_attachment=True)
             else:
-                file_name = generateXESfile(db_connection, start_date, end_date, resource_ids,
+                filepath = generateXESfile(db_connection, start_date, end_date, resource_ids,
                                             include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
-                if file_name is None:
+                if filepath is None:
                     return 'No events found for resource', 204
-                return send_file(file_name, as_attachment=True)
+                return send_file(filepath, as_attachment=True)
         except ValueError as e:
             print(e)
             logger.error(e)
@@ -178,6 +178,29 @@ if __name__ == '__main__':
 
 
 def generateXESfile(db_connection, start_date=None, end_date=None, resource_ids=None, include_bot_messages=False, include_life_cycle_start=False):
+    """
+    This function generates an XES file from the events in the database
+    
+    Parameters
+    ----------
+    db_connection : sqlalchemy.engine.base.Connection
+        Connection to the database
+    start_date : string
+        Start date of the events
+    end_date : string
+        End date of the events
+    resource_ids : list
+        List of resource ids
+    include_bot_messages : bool
+        Include bot message events in the event log
+    include_life_cycle_start : bool
+        Include life cycle start events in the event log
+
+    Returns
+    -------
+    file_path : string
+        Path to the generated XES file
+    """
     logger.info('Reading events from database')
     if not os.path.exists(os.path.join(current_dir, 'event_logs')):
         os.makedirs(os.path.join(current_dir, 'event_logs'))
@@ -193,8 +216,7 @@ def generateXESfile(db_connection, start_date=None, end_date=None, resource_ids=
                              include_bot_messages, include_life_cycle_start)
     pm4py.write_xes(event_log, 'event_logs/'+file_name,
                     case_id_key='case:concept:name')
-    return file_name
-
+    return os.path.join(current_dir, 'event_logs', file_name)
 
 def get_filename(start_date=None, end_date=None, resource_ids=None, include_bot_messages=False, include_life_cycle_start=False):
     filename = f"{''.join(resource_ids)}"
