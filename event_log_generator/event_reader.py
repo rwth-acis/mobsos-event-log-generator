@@ -4,7 +4,7 @@ import json
 # pip install dogpile.cache for caching the sql results
 
 
-def generate_eventlog(db_connection, start_date=None, end_date=None, resource_ids=None, include_bot_messages=False, include_life_cycle_start=False):
+def generate_eventlog(db_connection, start_date=None, end_date=None, resource_ids=None, include_bot_messages=False, include_life_cycle_start=False, deserialize_remarks=False):
     df = _read_events_into_df(db_connection, start_date, end_date, resource_ids,
                               include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
 
@@ -29,7 +29,8 @@ def generate_eventlog(db_connection, start_date=None, end_date=None, resource_id
         end_date = df['time:timestamp'].max().strftime('%Y-%m-%d')
 
     # extract fields from remarks column
-    df = df.apply(_extract_remarks, axis=1)
+    if deserialize_remarks:
+        df = df.apply(_extract_remarks, axis=1)
     if ('lifecycle:transition' in df.columns):
         df.loc[:, ['lifecycle:transition']] = df[[
             'lifecycle:transition']].fillna('complete')
@@ -69,6 +70,7 @@ def _read_events_into_df(db_connection, start_date=None, end_date=None, resource
 
     df = pd.read_sql(statement, con=db_connection,
                      params=params)
+    print(f'Read {len(df)} events from database')
     df.rename(columns={'CASE_ID': 'case:concept:name', 'ACTIVITY_NAME': 'concept:name',
               'TIME_STAMP': 'time:timestamp', 'LIFECYCLE_PHASE': 'lifecycle:transition'}, inplace=True)
     # convert time:timestamp to datetime

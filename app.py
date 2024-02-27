@@ -177,7 +177,7 @@ if __name__ == '__main__':
     app.run(port=port, debug=True)
 
 
-def generateXESfile(db_connection, start_date=None, end_date=None, resource_ids=None, include_bot_messages=False, include_life_cycle_start=False):
+def generateXESfile(db_connection, start_date=None, end_date=None, resource_ids=None, include_bot_messages=False, include_life_cycle_start=False,deserialize_remarks=False):
     """
     This function generates an XES file from the events in the database
     
@@ -205,7 +205,7 @@ def generateXESfile(db_connection, start_date=None, end_date=None, resource_ids=
     if not os.path.exists(os.path.join(current_dir, 'event_logs')):
         os.makedirs(os.path.join(current_dir, 'event_logs'))
     event_log = generate_eventlog(db_connection, start_date, end_date, resource_ids,
-                                  include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start)
+                                  include_bot_messages=include_bot_messages, include_life_cycle_start=include_life_cycle_start,deserialize_remarks=deserialize_remarks)
     if event_log is None or event_log.empty:
         logger.info('No events found for resource ids: '+str(resource_ids))
         return None
